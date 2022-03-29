@@ -24,37 +24,29 @@ export const ChatProvider = ({ chatId, phone, children }: ChatProviderProps) => 
 	);
 
 	useEffect(() => {
-		try {
-			const chatSubscription = chatApi.subscribe(chatId, phone);
+		const chatSubscription = chatApi.subscribe(chatId, phone);
 
-			chatSubscription.onmessage = function (ev: MessageEvent) {
-				const response = JSON.parse(ev.data) as ChatApiResponse;
-				const content = response.data;
+		chatSubscription.onmessage = function (ev: MessageEvent) {
+			const response = JSON.parse(ev.data) as ChatApiResponse;
+			const content = response.data;
 
-				if (content) dispatch(addServerMessage(content));
+			if (content) dispatch(addServerMessage(content));
 
-				dispatch(saveStreamResult(response));
-			};
+			dispatch(saveStreamResult(response));
+		};
 
-			chatSubscription.onopen = function () {
-				dispatch(setStreamFailed(false));
-			};
+		chatSubscription.onopen = function () {
+			dispatch(setStreamFailed(false));
+		};
 
-			chatSubscription.onerror = function () {
-				dispatch(setStreamFailed(true));
+		chatSubscription.onerror = function () {
+			dispatch(setStreamFailed(true));
+		};
 
-				console.log(":(");
-			};
-
-			return () => {
-				chatSubscription.close();
-			};
-		} catch (error) {
-			console.log(error);
-		}
+		return () => {
+			chatSubscription.close();
+		};
 	}, [chatId, phone]);
-
-	console.log(state);
 
 	return <ChatContext.Provider value={{ ...state, chatId, phone, sendClientMessage }}>{children}</ChatContext.Provider>;
 };
